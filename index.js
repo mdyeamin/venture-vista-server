@@ -1,10 +1,12 @@
+require('dotenv').config()
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
 app.use(cors());
-const port = process.env.PORT || 8000;
-const uri = process.env.MONGODB_URI
+app.use(express.json())
+const port = process.env.PORT
+const uri = process.env.MONGODB_URI;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -16,12 +18,21 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const db = client.db("venture_vista");
+    const destinationCollection = db.collection("destinations");
     // *****
-
+    // get all data from the collection
     app.get("/", (req, res) => {
       res.send("Hello World!");
+    });
+    // post data to the collection
+    app.post("/destination", async(req, res) => {
+        const destination = req.body;
+        const result = await destinationCollection.insertOne(destination)
+        console.log("new post added",result);
+        res.send(result)
+        
     });
 
     // *****

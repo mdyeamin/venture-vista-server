@@ -23,6 +23,17 @@ async function run() {
     const destinationCollection = db.collection("destinations");
 
     // *****
+
+    // post data to the collection
+    app.post("/destinations", async (req, res) => {
+      const destination = req.body;
+      console.log(destination, "desti");
+
+      const result = await destinationCollection.insertOne(destination);
+      console.log("new post added", result);
+      res.send(result);
+    });
+
     // get all data from the collection
     app.get("/destinations", async (req, res) => {
       const result = await destinationCollection.find().toArray();
@@ -39,15 +50,25 @@ async function run() {
 
       res.send(findOne);
     });
+    // update single data by ID
+    app.patch("/destinations/:id", async (req, res) => {
+      const id = req.params.id;
 
-    // post data to the collection
-    app.post("/destinations", async (req, res) => {
-      const destination = req.body;
-      console.log(destination, "desti");
-
-      const result = await destinationCollection.insertOne(destination);
-      console.log("new post added", result);
+      const updatedData = req.body;
+      const result = await destinationCollection.updateOne(
+        {
+          _id: new ObjectId(id),
+        },
+        { $set: updatedData },
+      );
       res.send(result);
+    });
+
+    // delete one by id
+    app.delete("/destinations/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = destinationCollection.deleteOne({_id:new ObjectId(id)})
+      res.send(result)
     });
 
     // *****

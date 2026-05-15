@@ -21,6 +21,7 @@ async function run() {
     await client.connect();
     const db = client.db("venture_vista");
     const destinationCollection = db.collection("destinations");
+    const bookingCollection = db.collection("bookings");
 
     // *****
 
@@ -67,9 +68,22 @@ async function run() {
     // delete one by id
     app.delete("/destinations/:id", async (req, res) => {
       const id = req.params.id;
-      const result = destinationCollection.deleteOne({_id:new ObjectId(id)})
-      res.send(result)
+      const result = destinationCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
     });
+
+    // booking API
+
+    // add booking api
+    app.post("/booking", async (req, res) => {
+      const bookings = req.body;
+      const result = await bookingCollection.insertOne(bookings);
+      console.log(result, "catch from  backend");
+
+      res.send(result);
+    });
+
+// get booking api
 
     // *****
 

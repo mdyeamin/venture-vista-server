@@ -83,8 +83,29 @@ async function run() {
       res.send(result);
     });
 
-// get booking api
+    // get booking api
+    app.get("/booking/:userId", async (req, res) => {
+      const { userId } = req.params;
 
+      const result = await bookingCollection.find({ userId: userId }).toArray();
+      res.json(result);
+    });
+
+    // delete booking
+    app.delete("/booking/:bookingId", async (req, res) => {
+      const { bookingId } = req.params;
+      console.log(bookingId);
+
+      const result = await bookingCollection.deleteOne({
+        _id: new ObjectId(bookingId),
+      });
+      console.log("after Delete booking", result);
+
+      res.send(result);
+      // if(deletedCount){
+      //   revalidatePath(/)
+      // }
+    });
     // *****
 
     // Send a ping to confirm a successful connection

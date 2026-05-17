@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -24,11 +25,26 @@ async function run() {
     const bookingCollection = db.collection("bookings");
 
     // *****
+    const JWKS = createRemoteJWKSet(
+      new URL("http://localhost:3000/api/auth/jwks"),
+    );
+    const verifyToken = async (req, res, next) => {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).send({ message: "Unauthorized access" });
+      }
+      const token = authHeader.split(" ")[1];
+      if (!token) {
+        return res.status(401).send({ message: "Unauthorized access" });
+      }
+      try {
+        const { payload } = await jwtVerify(token, JWKS);
+        console.log(payload);
+        next();
+      } catch (error) {
+        return res.status(403).send({ message: "Forbidden" });
+      }
 
-    const verifyToken = (req, res, next) => {
-      const header = req.headers.authorization;
-
-      const token = header.split(" ")[1];
       console.log("token from header", token);
     };
 
@@ -74,7 +90,7 @@ async function run() {
     });
 
     // delete one by id
-    app.delete("/destinations/:id", async (req, res) => {
+    app.delete("/destinations/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const result = destinationCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
@@ -92,7 +108,7 @@ async function run() {
     });
 
     // get booking api
-    app.get("/booking/:userId", async (req, res) => {
+    app.get("/booking/:userId", verifyToken, async (req, res) => {
       const { userId } = req.params;
 
       const result = await bookingCollection.find({ userId: userId }).toArray();
@@ -100,7 +116,7 @@ async function run() {
     });
 
     // delete booking
-    app.delete("/booking/:bookingId", async (req, res) => {
+    app.delete("/booking/:bookingId",verifyToken, async (req, res) => {
       const { bookingId } = req.params;
       console.log(bookingId);
 

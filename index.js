@@ -25,6 +25,13 @@ async function run() {
 
     // *****
 
+    const verifyToken = (req, res, next) => {
+      const header = req.headers.authorization;
+
+      const token = header.split(" ")[1];
+      console.log("token from header", token);
+    };
+
     // post data to the collection
     app.post("/destinations", async (req, res) => {
       const destination = req.body;
@@ -44,28 +51,14 @@ async function run() {
     // get single  data by id
 
     //middleware for validate id
-    app.get(
-      "/destinations/:id",
-      (req, res, next) => {
-        const header = req.headers.authorization;
-        console.log(header);
-        
-          next();
-        
+    app.get("/destinations/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const findOne = await destinationCollection.findOne({
+        _id: new ObjectId(id),
+      });
 
-        // else {
-        //   res.status(401).send({ message: "Unauthorized please login" });
-        // }
-      },
-      async (req, res) => {
-        const id = req.params.id;
-        const findOne = await destinationCollection.findOne({
-          _id: new ObjectId(id),
-        });
-
-        res.send(findOne);
-      },
-    );
+      res.send(findOne);
+    });
     // update single data by ID
     app.patch("/destinations/:id", async (req, res) => {
       const id = req.params.id;

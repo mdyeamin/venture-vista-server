@@ -43,14 +43,29 @@ async function run() {
 
     // get single  data by id
 
-    app.get("/destinations/:id", async (req, res) => {
-      const id = req.params.id;
-      const findOne = await destinationCollection.findOne({
-        _id: new ObjectId(id),
-      });
+    //middleware for validate id
+    app.get(
+      "/destinations/:id",
+      (req, res, next) => {
+        const header = req.headers.authorization;
+        console.log(header);
+        
+          next();
+        
 
-      res.send(findOne);
-    });
+        // else {
+        //   res.status(401).send({ message: "Unauthorized please login" });
+        // }
+      },
+      async (req, res) => {
+        const id = req.params.id;
+        const findOne = await destinationCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        res.send(findOne);
+      },
+    );
     // update single data by ID
     app.patch("/destinations/:id", async (req, res) => {
       const id = req.params.id;
